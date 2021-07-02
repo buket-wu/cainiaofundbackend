@@ -2,16 +2,18 @@ package config
 
 import "os"
 
-var (
-	Debug   bool
-	Trace   bool
-	LogPath string
-)
+type Conf struct {
+	Debug   bool   `json:"debug"`
+	Trace   bool   `json:"trace"`
+	LogPath string `json:"logPath"`
+}
+
+var Config = &Conf{}
 
 func init() {
-	Debug = getEnv("Debug", true).(bool)
-	Trace = getEnv("Trace", false).(bool)
-	LogPath = "/var/cainiaofund/log/%Y%m%d%H%M.log"
+	Config.Debug = getEnv("Debug", true).(bool)
+	Config.Trace = getEnv("Trace", false).(bool)
+	Config.LogPath = getEnv("LogPath", "/var/cainiaofund/log/%Y%m%d%H.log").(string)
 }
 
 func getEnv(key string, defaultVal interface{}) interface{} {
@@ -20,4 +22,8 @@ func getEnv(key string, defaultVal interface{}) interface{} {
 	}
 
 	return defaultVal
+}
+
+func GetServerPort() string {
+	return ":8080"
 }

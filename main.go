@@ -1,13 +1,18 @@
 package main
 
 import (
+	"cainiaofundbackend/api"
+	"cainiaofundbackend/config"
 	"cainiaofundbackend/crontab"
 	"cainiaofundbackend/logger"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	logger.InitLogrus()
 	crontab.InitCron()
-	logrus.Info("dddds")
+
+	err := api.GetServer().Run(config.GetServerPort())
+	if err != nil {
+		panic(err)
+	}
 }

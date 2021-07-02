@@ -6,6 +6,8 @@ import (
 	lF "github.com/jiajin1/logrus-formatter"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
+	"io"
+	"os"
 	"time"
 )
 
@@ -20,46 +22,45 @@ func InitLogrus() {
 
 	logrus.SetFormatter(LogrusFormatter)
 
-	out, err := rotatelogs.New(
-		config.LogPath,
-		rotatelogs.WithLinkName(config.LogPath),
-		rotatelogs.WithMaxAge(time.Duration(30*24)*time.Hour),
-		rotatelogs.WithRotationTime(time.Hour),
-	)
-	if err != nil {
-		fmt.Printf("err:%v", err)
-	}
-
-	logrus.SetOutput(out)
+	logrus.SetOutput(getOut())
 }
 
 func NewLogger() *logrus.Logger {
-	out, err := rotatelogs.New(
-		config.LogPath,
-		rotatelogs.WithLinkName(config.LogPath),
-		rotatelogs.WithMaxAge(time.Duration(30*24)*time.Hour),
-		rotatelogs.WithRotationTime(time.Hour),
-	)
-	if err != nil {
-		fmt.Printf("err:%v", err)
-	}
 
 	return &logrus.Logger{
 		Level:        getLevel(),
 		ReportCaller: true,
 		Formatter:    LogrusFormatter,
-		Out:          out,
+		Out:          getOut(),
 	}
 }
 
 func getLevel() logrus.Level {
-	if config.Trace {
+	if config.Config.Trace {
 		return logrus.TraceLevel
 	}
 
-	if config.Debug {
+	if config.Config.Debug {
 		return logrus.DebugLevel
 	}
 
 	return logrus.InfoLevel
+}
+
+func getOut() io.Writer {
+	if os.Getenv("iterm") != "" {
+		return os.Stdout
+	}
+
+	out, err := rotatelogs.New(
+		config.Config.LogPath,
+		rotatelogs.WithLinkName(config.Config.LogPath),
+		rotatelogs.WithMaxAge(time.Duration(30*24)*time.Hour),
+		rotatelogs.WithRotationTime(time.Hour),
+	)
+	if err != nil {
+		panic(fmt.Sprintf("log init err:%v", err))
+	}
+
+	return out
 }

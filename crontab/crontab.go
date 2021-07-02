@@ -2,7 +2,6 @@ package crontab
 
 import (
 	"github.com/robfig/cron/v3"
-	"github.com/sirupsen/logrus"
 )
 
 func InitCron() {
@@ -13,12 +12,6 @@ func InitCron() {
 		cron.WithLogger(cronLog),
 		cron.WithParser(secondParser),
 	)
-
-	id, err := c.AddJob("0/1 * * * * ?", GetSyncJob())
-	if err != nil {
-		logrus.Errorf("err:%v", err)
-	}
-	logrus.Info(id)
 
 	c.Start()
 }
