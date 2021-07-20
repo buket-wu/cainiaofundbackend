@@ -17,14 +17,14 @@ func NewCronLogger() CronLog {
 }
 
 func (l CronLog) Info(msg string, keysAndValues ...interface{}) {
-	m := fmt.Sprintf("msg: %v", msg)
+	m := fmt.Sprintf("cron:msg: %v", msg)
 	str := kV2Str(keysAndValues...)
 
 	l.Logger.Info(m + str)
 }
 
 func (l CronLog) Error(err error, msg string, keysAndValues ...interface{}) {
-	m := fmt.Sprintf("err:%v; msg: %v", err, msg)
+	m := fmt.Sprintf("cron:err:%v; msg: %v", err, msg)
 	str := kV2Str(keysAndValues...)
 
 	l.Logger.Error(m + str)

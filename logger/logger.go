@@ -12,8 +12,9 @@ import (
 )
 
 var LogrusFormatter *lF.Formatter
+var Logger *logrus.Logger
 
-func InitLogrus() {
+func init() {
 	LogrusFormatter = lF.NewFormatter(false)
 
 	logrus.SetLevel(logrus.TraceLevel)
@@ -23,10 +24,11 @@ func InitLogrus() {
 	logrus.SetFormatter(LogrusFormatter)
 
 	logrus.SetOutput(getOut())
+
+	Logger = NewLogger()
 }
 
 func NewLogger() *logrus.Logger {
-
 	return &logrus.Logger{
 		Level:        getLevel(),
 		ReportCaller: true,
@@ -48,7 +50,7 @@ func getLevel() logrus.Level {
 }
 
 func getOut() io.Writer {
-	if os.Getenv("iterm") != "" {
+	if os.Getenv("CMD_OUT") == "1" {
 		return os.Stdout
 	}
 

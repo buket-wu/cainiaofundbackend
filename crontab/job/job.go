@@ -1,11 +1,17 @@
 package job
 
-func GetSyncJob() SyncFund {
-	j := SyncFund{
-		Name: "syncFund",
-	}
+import (
+	"cainiaofundbackend/logger"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+)
 
-	j.SetCtxId()
+func getCtx() *gin.Context {
+	ctx := &gin.Context{}
 
-	return j
+	ctxID := uuid.NewString()
+	logger.LogrusFormatter.SetCtxId(ctxID)
+
+	ctx.Set("ctxID", ctxID)
+	return ctx
 }

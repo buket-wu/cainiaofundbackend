@@ -3,11 +3,17 @@ package middleware
 import (
 	"cainiaofundbackend/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"time"
 )
 
 func LogMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// 设置上下文Id
+		ctxID := uuid.NewString()
+		c.Set("ctxID", ctxID)
+		logger.LogrusFormatter.SetCtxId(ctxID)
+
 		// 开始时间
 		startTime := time.Now()
 
@@ -33,7 +39,7 @@ func LogMiddleware() gin.HandlerFunc {
 		clientIP := c.ClientIP()
 
 		// 日志格式
-		logger.NewLogger().Infof("| %3d | %13v | %15s | %s | %s |",
+		logger.Logger.Infof("| %3d | %13v | %15s | %s | %s |",
 			statusCode,
 			latencyTime,
 			clientIP,
