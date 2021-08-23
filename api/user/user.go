@@ -4,8 +4,8 @@ import (
 	"cainiaofundbackend/db"
 	"cainiaofundbackend/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 )
 
@@ -17,14 +17,13 @@ func AddUser(c *gin.Context) {
 	}
 
 	insert := &db.User{
-		ID:         primitive.NewObjectID(),
 		Username:   req.Username,
-		Openid:     "",
+		Openid:     uuid.New().String(),
 		Createtime: utils.Now(),
 		Updatetime: utils.Now(),
 	}
 
-	res, err := db.UserCol.InsertOne(c, insert)
+	res, err := db.GetUserCol().InsertOne(c, insert)
 	if err != nil {
 		logrus.Errorf("err:%v", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, "insert fail")

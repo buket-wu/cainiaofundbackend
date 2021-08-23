@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
+	github.com/elliotchance/pie v1.38.2 // indirect
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-playground/validator/v10 v10.6.1 // indirect
 	github.com/go-resty/resty/v2 v2.6.0

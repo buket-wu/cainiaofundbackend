@@ -1,6 +1,7 @@
 package xiong
 
 import (
+	"encoding/json"
 	"github.com/sirupsen/logrus"
 	"testing"
 )
@@ -15,6 +16,8 @@ func TestGetFundDetail(t *testing.T) {
 	}
 
 	res, err := GetFundDetail(req)
-	logrus.Info(res)
+
+	jsonStr, _ := json.Marshal(res)
+	logrus.Info(string(jsonStr))
 	logrus.Info(err)
 }

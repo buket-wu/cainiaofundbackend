@@ -7,19 +7,52 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
+	"strings"
 )
 
 func AddFund(c *gin.Context) {
 	req := AddFundReq{}
 	if err := c.ShouldBind(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, "code require")
+		c.AbortWithStatusJSON(http.StatusBadRequest, err)
+		return
+	}
+
+	resp := AddFundResp{}
+
+	codeArr := strings.Split(req.Codes, ",")
+	codeMap := make(map[string]int)
+	for _, code := range codeArr {
+		codeMap[code] = 1
+	}
+
+	newCodeList := make([]string, 0)
+	cur, err := db.GetFundCol().Find(c, bson.M{"code": bson.M{"$in": codeArr}})
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, "get local fund fail")
+		return
+	}
+	for cur.Next(c) {
+		var fund db.Fund
+		err := cur.Decode(&fund)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, "decode fund fail")
+			return
+		}
+
+		if _, ok := codeMap[fund.Code]; !ok {
+			newCodeList = append(newCodeList)
+		}
+
+	}
+
+	if len(newCodeList) == 0 {
+		c.JSON(http.StatusOK, resp)
 		return
 	}
 
 	xReq := &xiong.GetFundReq{
-		Code: req.Code,
+		Code: strings.Join(newCodeList, ","),
 	}
 
 	fundList, err := xiong.GetFund(xReq)
@@ -31,7 +64,6 @@ func AddFund(c *gin.Context) {
 	insertMany := make([]interface{}, 0)
 	for _, fund := range fundList {
 		insert := &db.Fund{
-			ID:         primitive.NewObjectID(),
 			Code:       fund.Code,
 			Name:       fund.Name,
 			Status:     db.FundStatusOn,
@@ -41,7 +73,7 @@ func AddFund(c *gin.Context) {
 		insertMany = append(insertMany, insert)
 	}
 
-	res, err := db.FundCol.InsertMany(c, insertMany)
+	res, err := db.GetFundCol().InsertMany(c, insertMany)
 	if err != nil {
 		logrus.Errorf("err:%v", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, "insert fail")
@@ -53,8 +85,8 @@ func AddFund(c *gin.Context) {
 }
 
 func GetFundList(c *gin.Context) {
-	rsp := []db.Fund{}
-	cur, err := db.FundCol.Find(c, bson.D{{}})
+	rsp := make([]db.Fund, 0)
+	cur, err := db.GetFundCol().Find(c, bson.D{{}})
 	if err != nil {
 		logrus.Errorf("err:%v", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, "query fail")

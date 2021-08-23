@@ -6,7 +6,6 @@ import (
 	"cainiaofundbackend/xiong"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"strings"
 	"time"
@@ -15,6 +14,7 @@ import (
 type SyncFund struct{}
 
 func (j SyncFund) Run() {
+
 	ctx := getCtx()
 	now := time.Now()
 
@@ -28,7 +28,7 @@ func (j SyncFund) Run() {
 	}
 
 	fundList := make([]db.Fund, 0)
-	cur, err := db.FundCol.Find(ctx, bson.M{"status": db.FundStatusOn})
+	cur, err := db.GetFundCol().Find(ctx, bson.M{"status": db.FundStatusOn})
 	if err != nil {
 		logrus.Errorf("get fund fail; err:%v", err)
 		return
@@ -61,7 +61,7 @@ func (j SyncFund) Run() {
 	fundTrendList := make([]db.FundTrend, 0)
 	findOptions := options.Find()
 	findOptions.SetSort(bson.D{{"_id", -1}})
-	cur, err = db.FundTrendCol.Find(ctx, bson.M{
+	cur, err = db.GetFundTrendCol().Find(ctx, bson.M{
 		"isMonday":   1,
 		"isDayLast":  1,
 		"code":       bson.M{"$in": codeArr},
@@ -103,9 +103,8 @@ func (j SyncFund) Run() {
 			SpecGrowth = ((fund.NetWorth - lastTrend.NetWorth) / lastTrend.NetWorth) * 100
 			if SpecGrowth <= 5 {
 				record := &db.RemindRecord{
-					ID:          primitive.NewObjectID(),
 					Code:        fund.Code,
-					UserID:      "60ebabcc2a40500ff3040966",
+					UserOpenid:  "60ebabcc2a40500ff3040966",
 					NetWorth:    fund.NetWorth,
 					ExpectWorth: fund.ExpectWorth,
 					SpecGrowth:  SpecGrowth,
@@ -119,29 +118,29 @@ func (j SyncFund) Run() {
 		}
 
 		insert := &db.FundTrend{
-			ID:          primitive.NewObjectID(),
-			Code:        fund.Code,
-			Name:        fund.Name,
-			NetWorth:    fund.NetWorth,
-			ExpectWorth: fund.ExpectWorth,
-			IsMonday:    utils.Bool2Uint32(nowWeekday == time.Monday),
-			IsDayLast:   utils.Bool2Uint32(nowHour >= 15),
-			DayGrowth:   fund.DayGrowth,
-			SpecGrowth:  SpecGrowth,
-			Createtime:  utils.Now(),
-			Updatetime:  utils.Now(),
+			Code:         fund.Code,
+			Name:         fund.Name,
+			NetWorth:     fund.NetWorth,
+			ExpectWorth:  fund.ExpectWorth,
+			IsMonday:     utils.Bool2Uint32(nowWeekday == time.Monday),
+			IsDayLast:    utils.Bool2Uint32(nowHour >= 15),
+			DayGrowth:    fund.DayGrowth,
+			ExpectGrowth: fund.ExpectGrowth,
+			SpecGrowth:   SpecGrowth,
+			Createtime:   utils.Now(),
+			Updatetime:   utils.Now(),
 		}
 		insertMany = append(insertMany, insert)
 	}
 
-	_, err = db.FundTrendCol.InsertMany(ctx, insertMany)
+	_, err = db.GetFundTrendCol().InsertMany(ctx, insertMany)
 	if err != nil {
 		logrus.Errorf("err:%v", err)
 		return
 	}
 
 	if len(insertRecord) > 0 {
-		_, err = db.RemindRecordCol.InsertMany(ctx, insertRecord)
+		_, err = db.GetRemindRecordCol().InsertMany(ctx, insertRecord)
 		if err != nil {
 			logrus.Errorf("err:%v", err)
 			return

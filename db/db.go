@@ -10,10 +10,7 @@ import (
 )
 
 var (
-	UserCol         *mongo.Collection
-	FundCol         *mongo.Collection
-	FundTrendCol    *mongo.Collection
-	RemindRecordCol *mongo.Collection
+	MongoClient *mongo.Database
 )
 
 func init() {
@@ -30,9 +27,21 @@ func init() {
 	if err != nil {
 		logrus.Fatalf("err:%v", err)
 	}
-	db := client.Database(config.Config.Mongo.DB)
-	UserCol = db.Collection("user")
-	FundCol = db.Collection("fund")
-	FundTrendCol = db.Collection("fundTrend")
-	RemindRecordCol = db.Collection("remindRecord")
+	MongoClient = client.Database(config.Config.Mongo.DB)
+}
+
+func GetUserCol() *mongo.Collection {
+	return MongoClient.Collection("user")
+}
+
+func GetFundCol() *mongo.Collection {
+	return MongoClient.Collection("fund")
+}
+
+func GetFundTrendCol() *mongo.Collection {
+	return MongoClient.Collection("fundTrend")
+}
+
+func GetRemindRecordCol() *mongo.Collection {
+	return MongoClient.Collection("remindRecord")
 }
