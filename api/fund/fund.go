@@ -2,7 +2,6 @@ package fund
 
 import (
 	"cainiaofundbackend/db"
-	"cainiaofundbackend/db/model"
 	"cainiaofundbackend/utils"
 	"cainiaofundbackend/xiong"
 	"github.com/gin-gonic/gin"
@@ -31,11 +30,11 @@ func AddFund(c *gin.Context) {
 
 	insertMany := make([]interface{}, 0)
 	for _, fund := range fundList {
-		insert := &model.Fund{
+		insert := &db.Fund{
 			ID:         primitive.NewObjectID(),
 			Code:       fund.Code,
 			Name:       fund.Name,
-			Status:     model.FundStatusOn,
+			Status:     db.FundStatusOn,
 			Createtime: utils.Now(),
 			Updatetime: utils.Now(),
 		}
@@ -54,7 +53,7 @@ func AddFund(c *gin.Context) {
 }
 
 func GetFundList(c *gin.Context) {
-	rsp := []model.Fund{}
+	rsp := []db.Fund{}
 	cur, err := db.FundCol.Find(c, bson.D{{}})
 	if err != nil {
 		logrus.Errorf("err:%v", err)

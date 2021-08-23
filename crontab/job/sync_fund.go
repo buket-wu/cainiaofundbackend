@@ -2,7 +2,6 @@ package job
 
 import (
 	"cainiaofundbackend/db"
-	"cainiaofundbackend/db/model"
 	"cainiaofundbackend/utils"
 	"cainiaofundbackend/xiong"
 	"github.com/sirupsen/logrus"
@@ -28,8 +27,8 @@ func (j SyncFund) Run() {
 		return
 	}
 
-	fundList := make([]model.Fund, 0)
-	cur, err := db.FundCol.Find(ctx, bson.M{"status": model.FundStatusOn})
+	fundList := make([]db.Fund, 0)
+	cur, err := db.FundCol.Find(ctx, bson.M{"status": db.FundStatusOn})
 	if err != nil {
 		logrus.Errorf("get fund fail; err:%v", err)
 		return
@@ -59,7 +58,7 @@ func (j SyncFund) Run() {
 		whereTime = utils.GetLastWeekFirstDate(now).Unix()
 	}
 
-	fundTrendList := make([]model.FundTrend, 0)
+	fundTrendList := make([]db.FundTrend, 0)
 	findOptions := options.Find()
 	findOptions.SetSort(bson.D{{"_id", -1}})
 	cur, err = db.FundTrendCol.Find(ctx, bson.M{
@@ -76,7 +75,7 @@ func (j SyncFund) Run() {
 		logrus.Errorf("cur fund trend fail; err:%v", err)
 		return
 	}
-	fundTrendMap := make(map[string]model.FundTrend)
+	fundTrendMap := make(map[string]db.FundTrend)
 	if len(fundTrendList) > 0 {
 		for _, fundTrend := range fundTrendList {
 			if _, ok := fundTrendMap[fundTrend.Code]; !ok {
@@ -103,7 +102,7 @@ func (j SyncFund) Run() {
 			// todo::判断是否提醒
 			SpecGrowth = ((fund.NetWorth - lastTrend.NetWorth) / lastTrend.NetWorth) * 100
 			if SpecGrowth <= 5 {
-				record := &model.RemindRecord{
+				record := &db.RemindRecord{
 					ID:          primitive.NewObjectID(),
 					Code:        fund.Code,
 					UserID:      "60ebabcc2a40500ff3040966",
@@ -119,7 +118,7 @@ func (j SyncFund) Run() {
 			SpecGrowth = 0
 		}
 
-		insert := &model.FundTrend{
+		insert := &db.FundTrend{
 			ID:          primitive.NewObjectID(),
 			Code:        fund.Code,
 			Name:        fund.Name,

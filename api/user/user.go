@@ -2,7 +2,6 @@ package user
 
 import (
 	"cainiaofundbackend/db"
-	"cainiaofundbackend/db/model"
 	"cainiaofundbackend/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -17,7 +16,7 @@ func AddUser(c *gin.Context) {
 		return
 	}
 
-	insert := &model.User{
+	insert := &db.User{
 		ID:         primitive.NewObjectID(),
 		Username:   req.Username,
 		Openid:     "",

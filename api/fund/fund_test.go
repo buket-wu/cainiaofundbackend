@@ -2,7 +2,6 @@ package fund
 
 import (
 	"cainiaofundbackend/db"
-	"cainiaofundbackend/db/model"
 	"context"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -12,7 +11,7 @@ import (
 
 func TestFund_GetCode(t *testing.T) {
 	ctx := context.Background()
-	rsp := []model.Fund{}
+	rsp := make([]db.Fund, 0)
 	cur, err := db.FundCol.Find(ctx, bson.D{{}})
 	if err != nil {
 		logrus.Errorf("err:%v", err)
