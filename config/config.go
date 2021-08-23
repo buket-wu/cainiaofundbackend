@@ -1,6 +1,8 @@
 package config
 
-import "os"
+import (
+	"os"
+)
 
 type Mongo struct {
 	Addr     string `json:"addr"`
@@ -20,23 +22,20 @@ type Conf struct {
 var Config = &Conf{}
 
 func init() {
-	Config.Debug = getEnv("Debug", true) == "1"
-	Config.Trace = getEnv("Trace", false) == "1"
-	Config.LogPath = getEnv("LogPath", "/var/cainiaofund/log/%Y%m%d%H.log").(string)
+	Config.Debug = getEnv("Debug", "true") == "true"
+	Config.Trace = getEnv("Trace", "false") == "false"
+	Config.LogPath = getEnv("LogPath", "/var/cainiaofund/log/%Y%m%d%H.log")
 
-	mongoJson := getEnv("mongo", "")
-	if mongoJson == "" {
-		Config.Mongo = Mongo{
-			Addr:     "127.0.0.1:27017",
-			DB:       "cainiaofund",
-			AuthDB:   "cainiaofund",
-			User:     "cainiao",
-			Password: "qweasdzxc",
-		}
+	Config.Mongo = Mongo{
+		Addr:     getEnv("FMongoHost", ""),
+		DB:       getEnv("FDB", ""),
+		AuthDB:   getEnv("FAuthDb", ""),
+		User:     getEnv("FUser", ""),
+		Password: getEnv("FPassword", ""),
 	}
 }
 
-func getEnv(key string, defaultVal interface{}) interface{} {
+func getEnv(key string, defaultVal string) string {
 	if val := os.Getenv(key); val != "" {
 		return val
 	}
