@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -23,7 +24,7 @@ var Config = &Conf{}
 
 func init() {
 	Config.Debug = getEnv("Debug", "true") == "true"
-	Config.Trace = getEnv("Trace", "false") == "false"
+	Config.Trace = getEnv("Trace", "false") == "true"
 	Config.LogPath = getEnv("LogPath", "/var/cainiaofund/log/%Y%m%d%H.log")
 
 	Config.Mongo = Mongo{
@@ -44,5 +45,5 @@ func getEnv(key string, defaultVal string) string {
 }
 
 func GetServerPort() string {
-	return ":8080"
+	return fmt.Sprintf(":%s", getEnv("FPort", "8081"))
 }
