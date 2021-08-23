@@ -34,7 +34,12 @@ func (j SyncFund) Run() {
 		logrus.Errorf("get fund fail; err:%v", err)
 		return
 	}
-	defer cur.Close(ctx)
+	defer func() {
+		err := cur.Close(ctx)
+		if err != nil {
+			logrus.Errorf("mongo cur fail; err:%v", err)
+		}
+	}()
 
 	err = cur.All(ctx, &fundList)
 	if err != nil {
