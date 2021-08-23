@@ -45,5 +45,5 @@ func getEnv(key string, defaultVal string) string {
 }
 
 func GetServerPort() string {
-	return fmt.Sprintf(":%s", getEnv("FPort", "8081"))
+	return fmt.Sprintf(":%s", getEnv("FPort", "8090"))
 }
