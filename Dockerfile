@@ -12,7 +12,7 @@ COPY . .
 
 RUN go build -o /app
 
-FROM golang:1.16
+FROM Alpine:last
 EXPOSE 80
 COPY --from=builder /app /
 CMD ["/app"]
