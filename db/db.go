@@ -45,3 +45,7 @@ func GetFundTrendCol() *mongo.Collection {
 func GetRemindRecordCol() *mongo.Collection {
 	return MongoClient.Collection("remindRecord")
 }
+
+func GetFundRelationCol() *mongo.Collection {
+	return MongoClient.Collection("fundRelation")
+}

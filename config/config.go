@@ -2,37 +2,44 @@ package config
 
 import (
 	"fmt"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"log"
 	"os"
 )
 
-type Mongo struct {
-	Addr     string `json:"addr"`
-	DB       string `json:"db"`
-	AuthDB   string `json:"authDb"`
-	User     string `json:"user"`
-	Password string `json:"password"`
+type Conf struct {
+	Debug   bool   `yaml:"Debug"`
+	Trace   bool   `yaml:"Trace"`
+	LogPath string `yaml:"LogPath"`
+	Mongo   Mongo  `yaml:"Mongo"`
 }
 
-type Conf struct {
-	Debug   bool   `json:"debug"`
-	Trace   bool   `json:"trace"`
-	LogPath string `json:"logPath"`
-	Mongo   Mongo
+type Mongo struct {
+	Addr     string `yaml:"Addr"`
+	DB       string `yaml:"DB"`
+	AuthDB   string `yaml:"AuthDB"`
+	User     string `yaml:"User"`
+	Password string `yaml:"Password"`
 }
 
 var Config = &Conf{}
 
 func init() {
-	Config.Debug = getEnv("Debug", "true") == "true"
-	Config.Trace = getEnv("Trace", "false") == "true"
-	Config.LogPath = getEnv("LogPath", "/var/cainiaofund/log/%Y%m%d%H.log")
+	confYamlPath := getEnv("CainiaofundConfigPath", "")
+	if confYamlPath == "" {
+		log.Fatal("invalid yamlConfPath")
+	}
 
-	Config.Mongo = Mongo{
-		Addr:     getEnv("FMongoHost", ""),
-		DB:       getEnv("FDB", ""),
-		AuthDB:   getEnv("FAuthDb", ""),
-		User:     getEnv("FUser", ""),
-		Password: getEnv("FPassword", ""),
+	f, err := os.Open(confYamlPath)
+	if err != nil {
+		log.Fatalf("open yaml file fail; err:%v", err)
+	}
+	yamlContent, _ := ioutil.ReadAll(f)
+
+	err = yaml.Unmarshal(yamlContent, Config)
+	if err != nil {
+		log.Fatalf("unmarshal conf yaml fail; err:%v", err)
 	}
 }
 

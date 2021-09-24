@@ -2,8 +2,9 @@ package fund
 
 import (
 	"cainiaofundbackend/db"
-	"cainiaofundbackend/utils"
-	"cainiaofundbackend/xiong"
+	"cainiaofundbackend/db/dbtools"
+	"cainiaofundbackend/extend/utils"
+	xiong2 "cainiaofundbackend/extend/xiong"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
@@ -26,24 +27,18 @@ func AddFund(c *gin.Context) {
 		codeMap[code] = 1
 	}
 
-	newCodeList := make([]string, 0)
-	cur, err := db.GetFundCol().Find(c, bson.M{"code": bson.M{"$in": codeArr}})
+	fundList := make([]db.Fund, 0)
+	err := dbtools.GetMany(c, db.GetFundCol(), &fundList, bson.M{"code": bson.M{"$in": codeArr}})
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, "get local fund fail")
 		return
 	}
-	for cur.Next(c) {
-		var fund db.Fund
-		err := cur.Decode(&fund)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, "decode fund fail")
-			return
-		}
 
+	newCodeList := make([]string, 0)
+	for _, fund := range fundList {
 		if _, ok := codeMap[fund.Code]; !ok {
 			newCodeList = append(newCodeList)
 		}
-
 	}
 
 	if len(newCodeList) == 0 {
@@ -51,18 +46,18 @@ func AddFund(c *gin.Context) {
 		return
 	}
 
-	xReq := &xiong.GetFundReq{
+	xReq := &xiong2.GetFundReq{
 		Code: strings.Join(newCodeList, ","),
 	}
 
-	fundList, err := xiong.GetFund(xReq)
+	xiongFundList, err := xiong2.GetFund(xReq)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, "get fund fail")
 		return
 	}
 
 	insertMany := make([]interface{}, 0)
-	for _, fund := range fundList {
+	for _, fund := range xiongFundList {
 		insert := &db.Fund{
 			Code:       fund.Code,
 			Name:       fund.Name,
@@ -86,20 +81,12 @@ func AddFund(c *gin.Context) {
 
 func GetFundList(c *gin.Context) {
 	rsp := make([]db.Fund, 0)
-	cur, err := db.GetFundCol().Find(c, bson.D{{}})
+	err := dbtools.GetMany(c, db.GetFundCol(), &rsp, bson.M{})
 	if err != nil {
 		logrus.Errorf("err:%v", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, "query fail")
 		return
 	}
-
-	err = cur.All(c, &rsp)
-	if err != nil {
-		logrus.Errorf("err:%v", err)
-	}
-
-	// Close the cursor once finished
-	_ = cur.Close(c)
 
 	c.JSON(http.StatusOK, rsp)
 	return

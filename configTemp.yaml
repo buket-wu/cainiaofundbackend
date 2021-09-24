@@ -1,0 +1,9 @@
+Debug: true
+Trace: false
+LogPath: /var/cainiaofund/log/%Y%m%d%H.log
+Mongo:
+  Addr: "your mongo addr"
+  DB: "cainiaofund"
+  AuthDB: "your mongo auth db "
+  User: "you user account"
+  Password: "you user password"

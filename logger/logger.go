@@ -17,14 +17,16 @@ var Logger *logrus.Logger
 func init() {
 	LogrusFormatter = lF.NewFormatter(false)
 
-	logrus.SetLevel(logrus.TraceLevel)
+	logrus.SetLevel(getLevel())
 
 	logrus.SetReportCaller(true)
 
 	logrus.SetFormatter(LogrusFormatter)
 
 	logrus.SetOutput(getOut())
+}
 
+func InitLogger() {
 	Logger = NewLogger()
 }
 

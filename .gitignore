@@ -104,3 +104,5 @@ vendor/
 .history/
 
 *.log
+/yaml/
+/config.yaml

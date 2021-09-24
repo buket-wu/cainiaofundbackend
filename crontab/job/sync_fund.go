@@ -2,8 +2,9 @@ package job
 
 import (
 	"cainiaofundbackend/db"
-	"cainiaofundbackend/utils"
-	"cainiaofundbackend/xiong"
+	"cainiaofundbackend/db/dbtools"
+	utils2 "cainiaofundbackend/extend/utils"
+	xiong2 "cainiaofundbackend/extend/xiong"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -14,7 +15,6 @@ import (
 type SyncFund struct{}
 
 func (j SyncFund) Run() {
-
 	ctx := getCtx()
 	now := time.Now()
 
@@ -28,24 +28,7 @@ func (j SyncFund) Run() {
 	}
 
 	fundList := make([]db.Fund, 0)
-	cur, err := db.GetFundCol().Find(ctx, bson.M{"status": db.FundStatusOn})
-	if err != nil {
-		logrus.Errorf("get fund fail; err:%v", err)
-		return
-	}
-	defer func() {
-		err := cur.Close(ctx)
-		if err != nil {
-			logrus.Errorf("mongo cur fail; err:%v", err)
-		}
-	}()
-
-	err = cur.All(ctx, &fundList)
-	if err != nil {
-		logrus.Errorf("cur fund fail; err:%v", err)
-		return
-	}
-
+	err := dbtools.GetMany(ctx, db.GetFundCol(), &fundList, bson.M{"status": db.FundStatusOn})
 	codeArr := make([]string, len(fundList))
 	for _, fund := range fundList {
 		codeArr = append(codeArr, fund.Code)
@@ -53,28 +36,24 @@ func (j SyncFund) Run() {
 
 	var whereTime int64
 	if nowWeekday == time.Monday {
-		whereTime = utils.GetFirstDateOfWeek(now).Unix()
+		whereTime = utils2.GetFirstDateOfWeek(now).Unix()
 	} else {
-		whereTime = utils.GetLastWeekFirstDate(now).Unix()
+		whereTime = utils2.GetLastWeekFirstDate(now).Unix()
 	}
 
-	fundTrendList := make([]db.FundTrend, 0)
 	findOptions := options.Find()
 	findOptions.SetSort(bson.D{{"_id", -1}})
-	cur, err = db.GetFundTrendCol().Find(ctx, bson.M{
+	fundTrendList := make([]db.FundTrend, 0)
+	err = dbtools.GetMany(ctx, db.GetFundTrendCol(), &fundTrendList, bson.M{
 		"isMonday":   1,
 		"isDayLast":  1,
 		"code":       bson.M{"$in": codeArr},
 		"createtime": bson.M{"$gt": whereTime}}, findOptions)
 	if err != nil {
-		logrus.Errorf("get fund trend fail; err:%v", err)
-		return
-	}
-	err = cur.All(ctx, &fundTrendList)
-	if err != nil {
 		logrus.Errorf("cur fund trend fail; err:%v", err)
 		return
 	}
+
 	fundTrendMap := make(map[string]db.FundTrend)
 	if len(fundTrendList) > 0 {
 		for _, fundTrend := range fundTrendList {
@@ -84,10 +63,10 @@ func (j SyncFund) Run() {
 		}
 	}
 
-	req := xiong.GetFundReq{
+	req := xiong2.GetFundReq{
 		Code: strings.Join(codeArr, ","),
 	}
-	rsp, err := xiong.GetFund(&req)
+	rsp, err := xiong2.GetFund(&req)
 	if err != nil {
 		logrus.Errorf("get xiong fund; err:%v", err)
 		return
@@ -108,8 +87,8 @@ func (j SyncFund) Run() {
 					NetWorth:    fund.NetWorth,
 					ExpectWorth: fund.ExpectWorth,
 					SpecGrowth:  SpecGrowth,
-					Createtime:  utils.Now(),
-					Updatetime:  utils.Now(),
+					Createtime:  utils2.Now(),
+					Updatetime:  utils2.Now(),
 				}
 				insertRecord = append(insertRecord, record)
 			}
@@ -122,13 +101,13 @@ func (j SyncFund) Run() {
 			Name:         fund.Name,
 			NetWorth:     fund.NetWorth,
 			ExpectWorth:  fund.ExpectWorth,
-			IsMonday:     utils.Bool2Uint32(nowWeekday == time.Monday),
-			IsDayLast:    utils.Bool2Uint32(nowHour >= 15),
+			IsMonday:     utils2.Bool2Uint32(nowWeekday == time.Monday),
+			IsDayLast:    utils2.Bool2Uint32(nowHour >= 15),
 			DayGrowth:    fund.DayGrowth,
 			ExpectGrowth: fund.ExpectGrowth,
 			SpecGrowth:   SpecGrowth,
-			Createtime:   utils.Now(),
-			Updatetime:   utils.Now(),
+			Createtime:   utils2.Now(),
+			Updatetime:   utils2.Now(),
 		}
 		insertMany = append(insertMany, insert)
 	}
