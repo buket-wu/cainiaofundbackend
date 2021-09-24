@@ -18,7 +18,6 @@ func InitCron() {
 	c.Start()
 
 	addJob(c, "syncJob", "CRON_TZ=Asia/Shanghai 0 30 * * *", &job.SyncFund{})
-
 }
 
 func addJob(c *cron.Cron, name, spec string, cmd cron.Job) {

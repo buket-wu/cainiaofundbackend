@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	crontab.InitCron()
 	logger.InitLogger()
+	crontab.InitCron()
 
 	err := api.GetServer().Run(config.GetServerPort())
 	if err != nil {

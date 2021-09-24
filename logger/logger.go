@@ -3,6 +3,7 @@ package logger
 import (
 	"cainiaofundbackend/config"
 	"fmt"
+	"github.com/google/uuid"
 	lF "github.com/jiajin1/logrus-formatter"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
@@ -16,6 +17,7 @@ var Logger *logrus.Logger
 
 func init() {
 	LogrusFormatter = lF.NewFormatter(false)
+	LogrusFormatter.SetCtxId(uuid.NewString())
 
 	logrus.SetLevel(getLevel())
 
