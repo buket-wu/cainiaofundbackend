@@ -1,9 +1,10 @@
 package db
 
 const (
-	FundStatusOff = iota
-	FundStatusOn
+	FundStatusOn = 1
 )
+
+const RemindMinGrowth = 5
 
 type Fund struct {
 	Code       string `bson:"code" json:"code"`             // 基金代码

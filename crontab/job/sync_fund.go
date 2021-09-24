@@ -3,6 +3,8 @@ package job
 import (
 	"cainiaofundbackend/db"
 	"cainiaofundbackend/db/dbtools"
+	"cainiaofundbackend/extend/message"
+	"cainiaofundbackend/extend/routine"
 	utils2 "cainiaofundbackend/extend/utils"
 	xiong2 "cainiaofundbackend/extend/xiong"
 	"github.com/sirupsen/logrus"
@@ -78,9 +80,8 @@ func (j SyncFund) Run() {
 		var SpecGrowth float32
 		lastTrend, ok := fundTrendMap[fund.Code]
 		if ok {
-			// todo::判断是否提醒
 			SpecGrowth = ((fund.NetWorth - lastTrend.NetWorth) / lastTrend.NetWorth) * 100
-			if SpecGrowth <= 5 {
+			if SpecGrowth >= db.RemindMinGrowth {
 				record := &db.RemindRecord{
 					Code:        fund.Code,
 					UserOpenid:  "60ebabcc2a40500ff3040966",
@@ -91,6 +92,17 @@ func (j SyncFund) Run() {
 					Updatetime:  utils2.Now(),
 				}
 				insertRecord = append(insertRecord, record)
+
+				// 发送邮件提醒
+				err = routine.Pool.Submit(func() {
+					err = message.NewMessageDrive(message.DriveTypeWechatDefault).Send(record.UserOpenid, "xxx")
+					if err != nil {
+						logrus.Errorf("send messge fail; err:%v", err)
+					}
+				})
+				if err != nil {
+					logrus.Errorf("send messge fail; err:%v", err)
+				}
 			}
 		} else {
 			SpecGrowth = 0

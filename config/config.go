@@ -9,10 +9,11 @@ import (
 )
 
 type Conf struct {
-	Debug   bool   `yaml:"Debug"`
-	Trace   bool   `yaml:"Trace"`
-	LogPath string `yaml:"LogPath"`
-	Mongo   Mongo  `yaml:"Mongo"`
+	Debug      bool   `yaml:"Debug"`      //debug 暂时只用于日记
+	Trace      bool   `yaml:"Trace"`      // trace 暂时只用于日记
+	LogPath    string `yaml:"LogPath"`    // 日记保存路径
+	Mongo      Mongo  `yaml:"Mongo"`      // mongo配置
+	RoutineNum int    `yaml:"RoutineNum"` // 协程池容量
 }
 
 type Mongo struct {
